@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restaurant Chat UI</title>
+  <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  color-scheme: light;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+}
+html, body { min-height: 100%; }
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f8;
+  color: #14192c;
+}
+.app {
+  display: flex;
+  margin-top: 90px;
+  flex-direction: column;
+  width: min(460px, calc(100vw - 32px));
+  height: 920px;
+  background: #ffffff;
+  border: 1px solid #e6e9f1;
+  border-radius: 34px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(20, 25, 40, 0.12);
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid #e6e9f1;
+  background: #ffffff;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-icon {
+  width: 34px;
+  height: 34px;
+  background: #ffe7dc;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e25932;
+  font-size: 15px;
+}
+.brand-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #14192c;
+}
+.speed-pills {
+  display: flex;
+  gap: 6px;
+}
+.speed-pill {
+  font-size: 11px;
+  padding: 8px 12px;
+  border-radius: 18px;
+  border: 1px solid #dde3ec;
+  color: #566176;
+  background: #f7f8fb;
+  cursor: pointer;
+}
+.speed-pill.active {
+  background: #fff2ec;
+  color: #d25a34;
+  border-color: #f3d3c7;
+}
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #f6f7fb;
+  border: 1px solid #d8dce6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #55607b;
+  font-size: 13px;
+  position: relative;
+}
+.avatar::after {
+  content: '';
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 8px;
+  height: 8px;
+  background: #42b16a;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+}
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #f9fafc;
+}
+.messages::-webkit-scrollbar {
+  width: 6px;
+}
+.messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+.messages::-webkit-scrollbar-thumb {
+  background: rgba(84, 95, 126, 0.18);
+  border-radius: 999px;
+}
+.msg-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.msg-row.user {
+  flex-direction: row-reverse;
+}
+.bot-icon,
+.user-icon {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  margin-top: 2px;
+}
+.bot-icon {
+  background: #ffe7dc;
+  color: #e25932;
+}
+.user-icon {
+  background: #e7f2ff;
+  color: #1c2538;
+}
+.bubble {
+  max-width: 78%;
+  padding: 14px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  box-shadow: 0 10px 24px rgba(82, 94, 147, 0.06);
+}
+.bubble.bot {
+  background: #ffffff;
+  color: #191f33;
+  border-bottom-left-radius: 6px;
+}
+.bubble.user {
+  background: #ffede6;
+  color: #b54f2d;
+  border-bottom-right-radius: 6px;
+}
+.quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: 44px;
+}
+.chip {
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #e4e8f1;
+  color: #5f6d89;
+  background: #ffffff;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+.chip:hover {
+  transform: translateY(-1px);
+  border-color: #f6d2c5;
+  color: #d25a34;
+}
+.typing-bubble {
+  background: #ffffff;
+  padding: 14px 16px;
+  border-radius: 20px;
+  border-bottom-left-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 24px rgba(82, 94, 147, 0.06);
+}
+.typing-dots {
+  display: flex;
+  gap: 6px;
+}
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c3cad8;
+  animation: tdot 1.2s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tdot { 0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+.typing-label { font-size: 12px; color: #6f7b94; }
+.suggestions-bar {
+  padding: 16px 18px 12px;
+  border-top: 1px solid #e6e9f1;
+  background: #fbfbfe;
+}
+.suggestions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.suggestions-label {
+  font-size: 11px;
+  color: #7a86a3;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.suggestion-controls {
+  display: flex;
+  gap: 8px;
+}
+.suggestion-controls .slider-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid #e6e9f1;
+  background: #ffffff;
+  color: #6d7b99;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+.suggestion-controls .slider-btn:hover {
+  background: #f2f4f9;
+  transform: translateY(-1px);
+}
+.suggestions-wrap {
+  position: relative;
+}
+.suggestions-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scroll-behavior: smooth;
+}
+.suggestions-scroll::-webkit-scrollbar {
+  display: none;
+}
+.sug-card {
+  min-width: 128px;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e8ecf4;
+  padding: 14px 14px 12px;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.15s ease;
+  flex-shrink: 0;
+  box-shadow: 0 18px 40px rgba(68, 84, 130, 0.06);
+}
+.sug-card:hover {
+  transform: translateY(-2px);
+  border-color: #f9d7cd;
+}
+.sug-emoji { font-size: 20px; margin-bottom: 8px; }
+.sug-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222b42;
+  margin-bottom: 3px;
+}
+.sug-price { font-size: 12px; color: #7a8298; }
+.input-area {
+  padding: 16px 18px 20px;
+  border-top: 1px solid #e6e9f1;
+  background: #ffffff;
+}
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f6f7fb;
+  border-radius: 999px;
+  padding: 10px 16px;
+  border: 1px solid #e6e9f1;
+  transition: border-color 0.15s ease;
+}
+.input-row:focus-within { border-color: #f7c2b5; }
+#msg-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #1c2538;
+}
+#msg-input::placeholder { color: #9aa2b7; }
+.input-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e6e9f1;
+  color: #6d7b99;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.icon-btn svg,
+.send-btn svg,
+.brand-icon svg,
+.avatar svg,
+.bot-icon svg,
+.user-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.icon-btn:hover {
+  background: #f2f4f9;
+  transform: translateY(-1px);
+}
+.send-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ff8d60;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.send-btn:hover { background: #e07245; transform: translateY(-1px); }
+.send-btn:disabled {
+  background: #d5d8e1;
+  cursor: not-allowed;
+}
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0 0;
+  font-size: 11px;
+  color: #7a86a3;
+}
+.receipt {
+  background: #fbfbff;
+  border: 1px solid #e6e9f1;
+  border-radius: 20px;
+  padding: 18px;
+  font-size: 13px;
+  color: #2b3245;
+}
+.receipt-header {
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #d9dee9;
+  margin-bottom: 12px;
+}
+.receipt-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #e25932;
+  margin-bottom: 4px;
+}
+.receipt-sub { font-size: 12px; color: #6b748d; }
+.receipt-order { font-size: 12px; color: #8c98b1; margin-top: 6px; }
+.receipt-items { margin-bottom: 12px; }
+.receipt-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #e7ecf5;
+}
+.item-name { color: #2b3245; }
+.item-qty { color: #7a86a3; margin-left: 4px; }
+.item-price { color: #2b3245; font-weight: 600; }
+.receipt-divider { border: none; border-top: 1px dashed #d9dee9; margin: 12px 0; }
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 12px;
+  color: #7a86a3;
+}
+.receipt-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1c2538;
+  border-top: 1px solid #e7ecf5;
+  margin-top: 8px;
+}
+.pickup-badge {
+  margin-top: 14px;
+  background: #fff3ed;
+  border: 1px solid #f4d4c6;
+  border-radius: 16px;
+  padding: 14px 14px;
+  display: flex;
+  align-items: start;
+  gap: 10px;
+}
+.pickup-badge i { font-size: 16px; color: #e25932; margin-top: 2px; }
+.pickup-text { font-size: 12px; color: #5f6d89; line-height: 1.5; }
+.pickup-text strong { color: #1f293d; display: block; font-size: 13px; margin-bottom: 3px; }
+</style>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M11,.5V6.76a3.81,3.81,0,0,1-2.12,3.42h0a3.83,3.83,0,0,1-3.43,0h0A3.83,3.83,0,0,1,3.37,6.76V.5" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="1.92"/>
+        <line x1="7.21" y1="0.5" x2="7.21" y2="23.5" stroke="currentColor" stroke-miterlimit="10" stroke-width="1.92"/>
+        <path d="M14.87,23.5v-22h0a5.74,5.74,0,0,1,5.74,5.75V13l-5.75,2.87" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="1.92"/>
+      </svg>
+    </div>
+    <span class="brand-name">Restaurant</span>
+    </div>
+    <div class="speed-pills">
+      <button class="speed-pill active">Relax</button>
+      <button class="speed-pill">Fast</button>
+      <button class="speed-pill">Turbo</button>
+    </div>
+    <div class="avatar" aria-label="Profile">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect width="24" height="24" fill="none"/>
+        <path d="M0,15.832c0-4.947,6-3.958,6-5.937a2.881,2.881,0,0,0-.546-1.979A4.532,4.532,0,0,1,4,4.453,4.245,4.245,0,0,1,8,0a4.245,4.245,0,0,1,4,4.453,4.458,4.458,0,0,1-1.474,3.463A3,3,0,0,0,10,9.895c0,1.979,6,.989,6,5.937,0,0-1.593,1.168-8,1.168S0,15.832,0,15.832Z" transform="translate(4 3)" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="1.5"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="msg-row">
+      <div class="bot-icon" aria-hidden="true">
+        <svg viewBox="0 -19.5 164 164" fill="none" aria-hidden="true">
+          <path d="M19.2329 89.0831C17.3341 89.4211 15.7432 89.7559 14.1371 89.9819C7.06966 90.976 1.51901 86.5687 0.48068 79.5288C-1.0289 69.307 6.73229 58.1139 14.141 55.0389C16.6482 53.9986 19.5794 53.9795 23.0364 53.3665C32.2494 32.1615 49.7618 21.7934 73.5423 20.3488C73.8921 16.4462 74.238 12.5935 74.6022 8.54059C73.5751 8.11988 72.3431 7.95977 71.6796 7.26077C70.7134 6.24344 69.5996 4.84016 69.5957 3.59771C69.5918 2.53116 70.9221 0.709891 71.8974 0.535306C74.597 0.0535535 77.542 -0.276629 80.1608 0.325233C83.5048 1.0938 83.9852 3.75262 81.8548 6.48561C81.4171 6.9389 81.1341 7.51899 81.0462 8.14288C81.224 11.6156 81.5273 15.081 81.7616 18.179C88.0211 18.7375 94.0055 19.0381 99.9211 19.8421C119.273 22.472 132.088 33.3508 139.077 51.3896C139.194 51.6909 139.333 51.9849 139.478 52.2744C139.549 52.3747 139.633 52.4656 139.727 52.5448C142.943 52.5448 146.247 52.1103 149.393 52.6347C156.138 53.7583 161.178 57.4004 162.853 64.3477C164.528 71.2951 161.862 77.0616 156.759 81.6435C151.742 86.1493 145.621 87.389 138.993 86.5404C138.746 86.7453 138.532 86.987 138.359 87.2571C130.949 104.691 117.203 114.915 99.7662 120.658C84.6227 125.684 68.3154 126.026 52.9746 121.639C36.0424 116.958 23.8017 107.182 19.2329 89.0831ZM74.3653 116.033C77.9548 115.728 81.5686 115.59 85.1292 115.09C99.4118 113.083 112.05 107.628 121.744 96.6153C138.759 77.2881 134.524 42.1123 104.846 32.3558C93.8566 28.746 82.3857 26.5243 70.7233 27.2725C57.6687 28.1106 46.2832 33.0968 37.8617 43.4256C30.0513 53.0022 26.6062 64.3694 26.3233 76.5471C25.9125 94.2223 34.5276 106.232 51.1808 112.095C58.6448 114.649 66.4731 115.979 74.362 116.032L74.3653 116.033ZM20.0205 60.3756C19.7421 60.3376 19.4597 60.3412 19.1824 60.3861C12.7641 62.2757 6.45466 73.2929 8.09026 79.6823C8.58579 81.6199 9.81316 82.7712 11.7592 82.8092C13.8765 82.8512 16.0005 82.5894 17.5501 82.4949C18.4092 74.7881 19.2099 67.6156 20.0185 60.3742L20.0205 60.3756ZM141.736 77.21C145.278 77.15 148.678 75.8064 151.305 73.4289C154.874 70.1905 155.296 65.2817 152.224 62.4522C149.242 59.7061 145.667 58.9152 141.736 59.7146V77.21Z" fill="#000000"/><path d="M84.8075 82.0252C86.4018 82.3193 88.1725 82.2825 89.5331 83.0097C90.1516 83.3495 90.6946 83.8115 91.129 84.3676C91.5634 84.9238 91.8802 85.5624 92.06 86.2448C92.3344 88.1095 90.7172 89.0671 88.9411 89.2994C88.0814 89.4143 87.2076 89.3635 86.367 89.1498C84.8505 88.6937 83.2428 88.6309 81.6954 88.9674C80.148 89.304 78.7116 90.0287 77.5215 91.0734C76.1714 92.182 74.5896 93.0209 73.233 91.3781C72.0319 89.9236 72.5832 88.2348 73.7817 86.9346C75.1549 85.3673 76.8518 84.1166 78.7554 83.269C80.659 82.4214 82.7239 81.9971 84.8075 82.0252Z" fill="#000000"/><path d="M57.7186 52.5112C61.4295 52.6392 63.7503 55.2876 63.5495 59.1645C63.3893 62.2533 60.9084 64.7434 58.1203 64.6154C54.9698 64.4703 52.4724 61.3206 52.607 57.6582C52.7442 53.9453 54.2853 52.3924 57.7186 52.5112Z" fill="#000000"/><path d="M93.575 57.3327C93.5684 54.2361 94.7564 52.8328 97.4244 52.7856C100.873 52.7245 103.039 54.689 102.96 57.8066C102.891 60.4916 100.78 62.7678 98.3 62.8282C95.4672 62.8971 93.5822 60.7024 93.575 57.3327Z" fill="#000000"/></svg>
+      </div>
+      <div class="bubble bot">Hi, What can I help you with?</div>
+    </div>
+      <div class="quick-chips">
+      <span class="chip" onclick="sendChip('Daily Specials')"><i class="ti ti-calendar" style="font-size:11px;margin-right:4px" aria-hidden="true"></i>Daily Specials</span>
+      <span class="chip" onclick="sendChip('Hot Deals')"><i class="ti ti-layout" style="font-size:11px;margin-right:4px" aria-hidden="true"></i>Hot Deals</span>
+      <span class="chip" onclick="sendChip('Menu')"><i class="ti ti-brand-instagram" style="font-size:11px;margin-right:4px" aria-hidden="true"></i>Menu</span>
+      <span class="chip">···</span>
+    </div>
+  </div>
+
+  <div class="suggestions-bar">
+    <div class="suggestions-header">
+      <div class="suggestions-label">Suggested for you</div>
+      <div class="suggestion-controls">
+        <button class="slider-btn" onclick="scrollSuggestions(-1)" aria-label="Scroll left">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 6L9 12L15 18" stroke="#6d7b99" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="slider-btn" onclick="scrollSuggestions(1)" aria-label="Scroll right">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6L15 12L9 18" stroke="#6d7b99" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="suggestions-wrap">
+      <div class="suggestions-scroll" id="suggestions-scroll">
+      <div class="sug-card" onclick="orderSuggested('Wagyu Smash Burger', 18.99)">
+        <div class="sug-emoji">🍔</div>
+        <div class="sug-name">Wagyu Smash Burger</div>
+        <div class="sug-price">$18.99</div>
+      </div>
+      <div class="sug-card" onclick="orderSuggested('Truffle Fries', 9.49)">
+        <div class="sug-emoji">🍟</div>
+        <div class="sug-name">Truffle Fries</div>
+        <div class="sug-price">$9.49</div>
+      </div>
+      <div class="sug-card" onclick="orderSuggested('Lobster Bisque', 14.99)">
+        <div class="sug-emoji">🦞</div>
+        <div class="sug-name">Lobster Bisque</div>
+        <div class="sug-price">$14.99</div>
+      </div>
+      <div class="sug-card" onclick="orderSuggested('Mango Tango Smoothie', 7.99)">
+        <div class="sug-emoji">🥭</div>
+        <div class="sug-name">Mango Tango Smoothie</div>
+        <div class="sug-price">$7.99</div>
+      </div>
+      <div class="sug-card" onclick="orderSuggested('NY Cheesecake', 8.49)">
+        <div class="sug-emoji">🍰</div>
+        <div class="sug-name">NY Cheesecake</div>
+        <div class="sug-price">$8.49</div>
+      </div>
+      <div class="sug-card" onclick="orderSuggested('Grilled Salmon', 22.99)">
+        <div class="sug-emoji">🐟</div>
+        <div class="sug-name">Grilled Salmon</div>
+        <div class="sug-price">$22.99</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-row">
+      <input type="text" id="msg-input" placeholder="Type your order or ask anything…" onkeydown="handleKey(event)" />
+      <div class="input-actions">
+        <button class="icon-btn" aria-label="emoji">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.5" stroke="#6d7b99" stroke-width="1.6" fill="#ffffff" />
+            <circle cx="9" cy="10" r="1.3" fill="#6d7b99" />
+            <circle cx="15" cy="10" r="1.3" fill="#6d7b99" />
+            <path d="M8.5 15.2C9.5 16.4 10.7 17.1 12 17.1C13.3 17.1 14.5 16.4 15.5 15.2" stroke="#6d7b99" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+        </button>
+        <button class="icon-btn" aria-label="voice">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 5.5C10.07 5.5 8.5 7.07 8.5 9V13C8.5 14.93 10.07 16.5 12 16.5C13.93 16.5 15.5 14.93 15.5 13V9C15.5 7.07 13.93 5.5 12 5.5Z" stroke="#6d7b99" stroke-width="1.6"/>
+            <path d="M7.5 12.3C7.5 15.1 9.7 17.3 12.5 17.3C15.3 17.3 17.5 15.1 17.5 12.3" stroke="#6d7b99" stroke-width="1.6"/>
+            <path d="M12.5 18.3V20.3" stroke="#6d7b99" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M10.5 20.3H14.5" stroke="#6d7b99" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button class="send-btn" id="send-btn" onclick="handleSend()" aria-label="send">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 12L20 4L13 20L10 13L4 12Z" fill="#ffffff"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="status-bar" id="status-bar">
+      <i class="ti ti-brand-openai" style="font-size:13px" aria-hidden="true"></i>
+      <span>Model 26.5</span>
+      <span style="margin:0 4px;opacity:0.3">|</span>
+      <i class="ti ti-folder" style="font-size:13px" aria-hidden="true"></i>
+      <span>Automated Ordering System</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const MENU = {
+  "wagyu smash burger": { name: "Wagyu Smash Burger", price: 18.99, emoji: "🍔" },
+  "smash burger": { name: "Wagyu Smash Burger", price: 18.99, emoji: "🍔" },
+  "burger": { name: "Wagyu Smash Burger", price: 18.99, emoji: "🍔" },
+  "truffle fries": { name: "Truffle Fries", price: 9.49, emoji: "🍟" },
+  "fries": { name: "Truffle Fries", price: 9.49, emoji: "🍟" },
+  "lobster bisque": { name: "Lobster Bisque", price: 14.99, emoji: "🦞" },
+  "lobster": { name: "Lobster Bisque", price: 14.99, emoji: "🦞" },
+  "mango tango smoothie": { name: "Mango Tango Smoothie", price: 7.99, emoji: "🥭" },
+  "smoothie": { name: "Mango Tango Smoothie", price: 7.99, emoji: "🥭" },
+  "ny cheesecake": { name: "NY Cheesecake", price: 8.49, emoji: "🍰" },
+  "cheesecake": { name: "NY Cheesecake", price: 8.49, emoji: "🍰" },
+  "grilled salmon": { name: "Grilled Salmon", price: 22.99, emoji: "🐟" },
+  "salmon": { name: "Grilled Salmon", price: 22.99, emoji: "🐟" },
+  "pizza": { name: "Margherita Pizza", price: 16.99, emoji: "🍕" },
+  "margherita": { name: "Margherita Pizza", price: 16.99, emoji: "🍕" },
+  "pasta": { name: "Creamy Carbonara", price: 15.49, emoji: "🍝" },
+  "carbonara": { name: "Creamy Carbonara", price: 15.49, emoji: "🍝" },
+  "steak": { name: "Ribeye Steak", price: 34.99, emoji: "🥩" },
+  "coffee": { name: "Artisan Coffee", price: 5.49, emoji: "☕" },
+  "latte": { name: "Vanilla Latte", price: 6.49, emoji: "☕" },
+  "soda": { name: "Sparkling Soda", price: 3.99, emoji: "🥤" },
+  "water": { name: "Sparkling Water", price: 2.99, emoji: "💧" },
+  "salad": { name: "Caesar Salad", price: 12.99, emoji: "🥗" },
+  "caesar": { name: "Caesar Salad", price: 12.99, emoji: "🥗" },
+  "soup": { name: "Tomato Bisque", price: 8.99, emoji: "🍲" },
+  "wings": { name: "Crispy Wings", price: 13.99, emoji: "🍗" },
+  "chicken": { name: "Grilled Chicken", price: 17.99, emoji: "🍗" },
+  "tacos": { name: "Street Tacos (3pc)", price: 11.99, emoji: "🌮" },
+  "taco": { name: "Street Tacos (3pc)", price: 11.99, emoji: "🌮" },
+  "nachos": { name: "Loaded Nachos", price: 12.49, emoji: "🧆" },
+  "sushi": { name: "Sushi Roll Platter", price: 19.99, emoji: "🍱" },
+  "ramen": { name: "Tonkotsu Ramen", price: 14.99, emoji: "🍜" },
+  "ice cream": { name: "Gelato Trio", price: 7.99, emoji: "🍦" },
+  "gelato": { name: "Gelato Trio", price: 7.99, emoji: "🍦" },
+  "brownie": { name: "Warm Brownie", price: 6.99, emoji: "🍫" },
+  "chocolate": { name: "Chocolate Lava Cake", price: 9.99, emoji: "🍫" },
+  "wrap": { name: "Chicken Avocado Wrap", price: 13.49, emoji: "🌯" },
+};
+
+const LOCATIONS = [
+  "Table 7, Dining Hall A",
+  "Counter 3, Express Lane",
+  "Booth 12, Upper Level",
+  "Terrace Lounge, Seat B4",
+  "Drive-Through Window 1",
+];
+
+const STEPS = ["Processing your order…", "Analyzing the menu…", "Preparing your order…", "Wrapping things up…"];
+
+let isBusy = false;
+
+function scrollBottom() {
+  const m = document.getElementById('messages');
+  m.scrollTop = m.scrollHeight;
+}
+
+function addUserBubble(text) {
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row user';
+  row.innerHTML = `<div class="bubble user">${text}</div><div class="user-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect width="24" height="24" fill="none"/><path d="M0,15.832c0-4.947,6-3.958,6-5.937a2.881,2.881,0,0,0-.546-1.979A4.532,4.532,0,0,1,4,4.453,4.245,4.245,0,0,1,8,0a4.245,4.245,0,0,1,4,4.453,4.458,4.458,0,0,1-1.474,3.463A3,3,0,0,0,10,9.895c0,1.979,6,.989,6,5.937,0,0-1.593,1.168-8,1.168S0,15.832,0,15.832Z" transform="translate(4 3)" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="1.5"/></svg></div>`;
+  msgs.appendChild(row);
+  scrollBottom();
+}
+
+function addBotBubble(html) {
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  row.innerHTML = `<div class="bot-icon" aria-hidden="true"><svg viewBox="0 -19.5 164 164" fill="none" aria-hidden="true"><path d="M19.2329 89.0831C17.3341 89.4211 15.7432 89.7559 14.1371 89.9819C7.06966 90.976 1.51901 86.5687 0.48068 79.5288C-1.0289 69.307 6.73229 58.1139 14.141 55.0389C16.6482 53.9986 19.5794 53.9795 23.0364 53.3665C32.2494 32.1615 49.7618 21.7934 73.5423 20.3488C73.8921 16.4462 74.238 12.5935 74.6022 8.54059C73.5751 8.11988 72.3431 7.95977 71.6796 7.26077C70.7134 6.24344 69.5996 4.84016 69.5957 3.59771C69.5918 2.53116 70.9221 0.709891 71.8974 0.535306C74.597 0.0535535 77.542 -0.276629 80.1608 0.325233C83.5048 1.0938 83.9852 3.75262 81.8548 6.48561C81.4171 6.9389 81.1341 7.51899 81.0462 8.14288C81.224 11.6156 81.5273 15.081 81.7616 18.179C88.0211 18.7375 94.0055 19.0381 99.9211 19.8421C119.273 22.472 132.088 33.3508 139.077 51.3896C139.194 51.6909 139.333 51.9849 139.478 52.2744C139.549 52.3747 139.633 52.4656 139.727 52.5448C142.943 52.5448 146.247 52.1103 149.393 52.6347C156.138 53.7583 161.178 57.4004 162.853 64.3477C164.528 71.2951 161.862 77.0616 156.759 81.6435C151.742 86.1493 145.621 87.389 138.993 86.5404C138.746 86.7453 138.532 86.987 138.359 87.2571C130.949 104.691 117.203 114.915 99.7662 120.658C84.6227 125.684 68.3154 126.026 52.9746 121.639C36.0424 116.958 23.8017 107.182 19.2329 89.0831ZM74.3653 116.033C77.9548 115.728 81.5686 115.59 85.1292 115.09C99.4118 113.083 112.05 107.628 121.744 96.6153C138.759 77.2881 134.524 42.1123 104.846 32.3558C93.8566 28.746 82.3857 26.5243 70.7233 27.2725C57.6687 28.1106 46.2832 33.0968 37.8617 43.4256C30.0513 53.0022 26.6062 64.3694 26.3233 76.5471C25.9125 94.2223 34.5276 106.232 51.1808 112.095C58.6448 114.649 66.4731 115.979 74.362 116.032L74.3653 116.033ZM20.0205 60.3756C19.7421 60.3376 19.4597 60.3412 19.1824 60.3861C12.7641 62.2757 6.45466 73.2929 8.09026 79.6823C8.58579 81.6199 9.81316 82.7712 11.7592 82.8092C13.8765 82.8512 16.0005 82.5894 17.5501 82.4949C18.4092 74.7881 19.2099 67.6156 20.0185 60.3742L20.0205 60.3756ZM141.736 77.21C145.278 77.15 148.678 75.8064 151.305 73.4289C154.874 70.1905 155.296 65.2817 152.224 62.4522C149.242 59.7061 145.667 58.9152 141.736 59.7146V77.21Z" fill="#000000"/><path d="M84.8075 82.0252C86.4018 82.3193 88.1725 82.2825 89.5331 83.0097C90.1516 83.3495 90.6946 83.8115 91.129 84.3676C91.5634 84.9238 91.8802 85.5624 92.06 86.2448C92.3344 88.1095 90.7172 89.0671 88.9411 89.2994C88.0814 89.4143 87.2076 89.3635 86.367 89.1498C84.8505 88.6937 83.2428 88.6309 81.6954 88.9674C80.148 89.304 78.7116 90.0287 77.5215 91.0734C76.1714 92.182 74.5896 93.0209 73.233 91.3781C72.0319 89.9236 72.5832 88.2348 73.7817 86.9346C75.1549 85.3673 76.8518 84.1166 78.7554 83.269C80.659 82.4214 82.7239 81.9971 84.8075 82.0252Z" fill="#000000"/><path d="M57.7186 52.5112C61.4295 52.6392 63.7503 55.2876 63.5495 59.1645C63.3893 62.2533 60.9084 64.7434 58.1203 64.6154C54.9698 64.4703 52.4724 61.3206 52.607 57.6582C52.7442 53.9453 54.2853 52.3924 57.7186 52.5112Z" fill="#000000"/><path d="M93.575 57.3327C93.5684 54.2361 94.7564 52.8328 97.4244 52.7856C100.873 52.7245 103.039 54.689 102.96 57.8066C102.891 60.4916 100.78 62.7678 98.3 62.8282C95.4672 62.8971 93.5822 60.7024 93.575 57.3327Z" fill="#000000"/></svg></div><div class="bubble bot">${html}</div>`;
+  msgs.appendChild(row);
+  scrollBottom();
+  return row;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  row.id = 'typing-row';
+  row.innerHTML = `<div class="bot-icon" aria-hidden="true"><svg viewBox="0 -19.5 164 164" fill="none" aria-hidden="true"><path d="M19.2329 89.0831C17.3341 89.4211 15.7432 89.7559 14.1371 89.9819C7.06966 90.976 1.51901 86.5687 0.48068 79.5288C-1.0289 69.307 6.73229 58.1139 14.141 55.0389C16.6482 53.9986 19.5794 53.9795 23.0364 53.3665C32.2494 32.1615 49.7618 21.7934 73.5423 20.3488C73.8921 16.4462 74.238 12.5935 74.6022 8.54059C73.5751 8.11988 72.3431 7.95977 71.6796 7.26077C70.7134 6.24344 69.5996 4.84016 69.5957 3.59771C69.5918 2.53116 70.9221 0.709891 71.8974 0.535306C74.597 0.0535535 77.542 -0.276629 80.1608 0.325233C83.5048 1.0938 83.9852 3.75262 81.8548 6.48561C81.4171 6.9389 81.1341 7.51899 81.0462 8.14288C81.224 11.6156 81.5273 15.081 81.7616 18.179C88.0211 18.7375 94.0055 19.0381 99.9211 19.8421C119.273 22.472 132.088 33.3508 139.077 51.3896C139.194 51.6909 139.333 51.9849 139.478 52.2744C139.549 52.3747 139.633 52.4656 139.727 52.5448C142.943 52.5448 146.247 52.1103 149.393 52.6347C156.138 53.7583 161.178 57.4004 162.853 64.3477C164.528 71.2951 161.862 77.0616 156.759 81.6435C151.742 86.1493 145.621 87.389 138.993 86.5404C138.746 86.7453 138.532 86.987 138.359 87.2571C130.949 104.691 117.203 114.915 99.7662 120.658C84.6227 125.684 68.3154 126.026 52.9746 121.639C36.0424 116.958 23.8017 107.182 19.2329 89.0831ZM74.3653 116.033C77.9548 115.728 81.5686 115.59 85.1292 115.09C99.4118 113.083 112.05 107.628 121.744 96.6153C138.759 77.2881 134.524 42.1123 104.846 32.3558C93.8566 28.746 82.3857 26.5243 70.7233 27.2725C57.6687 28.1106 46.2832 33.0968 37.8617 43.4256C30.0513 53.0022 26.6062 64.3694 26.3233 76.5471C25.9125 94.2223 34.5276 106.232 51.1808 112.095C58.6448 114.649 66.4731 115.979 74.362 116.032L74.3653 116.033ZM20.0205 60.3756C19.7421 60.3376 19.4597 60.3412 19.1824 60.3861C12.7641 62.2757 6.45466 73.2929 8.09026 79.6823C8.58579 81.6199 9.81316 82.7712 11.7592 82.8092C13.8765 82.8512 16.0005 82.5894 17.5501 82.4949C18.4092 74.7881 19.2099 67.6156 20.0185 60.3742L20.0205 60.3756ZM141.736 77.21C145.278 77.15 148.678 75.8064 151.305 73.4289C154.874 70.1905 155.296 65.2817 152.224 62.4522C149.242 59.7061 145.667 58.9152 141.736 59.7146V77.21Z" fill="#000000"/><path d="M84.8075 82.0252C86.4018 82.3193 88.1725 82.2825 89.5331 83.0097C90.1516 83.3495 90.6946 83.8115 91.129 84.3676C91.5634 84.9238 91.8802 85.5624 92.06 86.2448C92.3344 88.1095 90.7172 89.0671 88.9411 89.2994C88.0814 89.4143 87.2076 89.3635 86.367 89.1498C84.8505 88.6937 83.2428 88.6309 81.6954 88.9674C80.148 89.304 78.7116 90.0287 77.5215 91.0734C76.1714 92.182 74.5896 93.0209 73.233 91.3781C72.0319 89.9236 72.5832 88.2348 73.7817 86.9346C75.1549 85.3673 76.8518 84.1166 78.7554 83.269C80.659 82.4214 82.7239 81.9971 84.8075 82.0252Z" fill="#000000"/><path d="M57.7186 52.5112C61.4295 52.6392 63.7503 55.2876 63.5495 59.1645C63.3893 62.2533 60.9084 64.7434 58.1203 64.6154C54.9698 64.4703 52.4724 61.3206 52.607 57.6582C52.7442 53.9453 54.2853 52.3924 57.7186 52.5112Z" fill="#000000"/><path d="M93.575 57.3327C93.5684 54.2361 94.7564 52.8328 97.4244 52.7856C100.873 52.7245 103.039 54.689 102.96 57.8066C102.891 60.4916 100.78 62.7678 98.3 62.8282C95.4672 62.8971 93.5822 60.7024 93.575 57.3327Z" fill="#000000"/></svg></div>
+    <div class="typing-bubble">
+      <div class="typing-dots">
+        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+      </div>
+      <span class="typing-label" id="typing-label">Processing your order…</span>
+    </div>`;
+  msgs.appendChild(row);
+  scrollBottom();
+  return row;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-row');
+  if (t) t.remove();
+}
+
+function parseOrder(text) {
+  const lower = text.toLowerCase();
+  const qtyMap = { one:1, two:2, three:3, four:4, five:5, a:1, an:1 };
+  const found = {};
+  for (const [key, item] of Object.entries(MENU)) {
+    if (lower.includes(key)) {
+      const id = item.name;
+      if (!found[id]) {
+        let qty = 1;
+        const beforeMatch = lower.slice(0, lower.indexOf(key));
+        const words = beforeMatch.trim().split(/\s+/);
+        const lastWord = words[words.length - 1];
+        if (/^\d+$/.test(lastWord)) qty = parseInt(lastWord);
+        else if (qtyMap[lastWord]) qty = qtyMap[lastWord];
+        found[id] = { ...item, qty };
+      }
+    }
+  }
+  return Object.values(found);
+}
+
+function genOrderNum() {
+  return '#OC-' + Math.floor(10000 + Math.random() * 90000);
+}
+
+function pickupTime() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + 15 + Math.floor(Math.random() * 20));
+  return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function buildReceipt(items) {
+  const sub = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const tax = sub * 0.08;
+  const total = sub + tax;
+  const orderNum = genOrderNum();
+  const time = pickupTime();
+  const loc = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
+  const itemRows = items.map(i =>
+    `<div class="receipt-item">
+      <span>${i.emoji} <span class="item-name">${i.name}</span><span class="item-qty">x${i.qty}</span></span>
+      <span class="item-price">$${(i.price * i.qty).toFixed(2)}</span>
+    </div>`
+  ).join('');
+  return `<div class="receipt">
+    <div class="receipt-header">
+      <div class="receipt-title">The Restaurant</div>
+      <div class="receipt-sub">Order Confirmed</div>
+      <div class="receipt-order">${orderNum} &nbsp;·&nbsp; ${new Date().toLocaleDateString()}</div>
+    </div>
+    <div class="receipt-items">${itemRows}</div>
+    <hr class="receipt-divider" />
+    <div class="receipt-row"><span>Subtotal</span><span>$${sub.toFixed(2)}</span></div>
+    <div class="receipt-row"><span>Tax (8%)</span><span>$${tax.toFixed(2)}</span></div>
+    <div class="receipt-total"><span>Total</span><span>$${total.toFixed(2)}</span></div>
+    <div class="pickup-badge">
+      <i class="ti ti-clock" aria-hidden="true"></i>
+      <div class="pickup-text">
+        <strong>Ready for pickup at ${time}</strong>
+        ${loc}
+      </div>
+    </div>
+  </div>`;
+}
+
+async function processOrder(text) {
+  isBusy = true;
+  document.getElementById('send-btn').disabled = true;
+  const typingRow = showTyping();
+  const label = document.getElementById('typing-label');
+
+  let step = 0;
+  const interval = setInterval(() => {
+    step = (step + 1) % STEPS.length;
+    if (label) label.textContent = STEPS[step];
+  }, 900);
+
+  await new Promise(r => setTimeout(r, 3200));
+  clearInterval(interval);
+  removeTyping();
+
+  const items = parseOrder(text);
+  isBusy = false;
+  document.getElementById('send-btn').disabled = false;
+
+  if (items.length === 0) {
+    addBotBubble(`Hmm, I couldn't find those items on our menu. Try something like <em>2 burgers and truffle fries</em>, or tap a suggestion above! 🍽️`);
+    return;
+  }
+  addBotBubble(buildReceipt(items));
+}
+
+function sendChip(label) {
+  if (isBusy) return;
+  const lower = label.toLowerCase();
+  addUserBubble(label);
+  if (lower.includes('special')) {
+    setTimeout(() => addBotBubble("Today's specials: 🍔 Wagyu Smash Burger, 🦞 Lobster Bisque, 🥩 Ribeye Steak. Just type what you'd like to order!"), 600);
+  } else {
+    setTimeout(() => addBotBubble(`I can help with <em>${label}</em>! 1. Burgers, 2. Coffee, 3. Salads & more`), 600);
+  }
+}
+
+function orderSuggested(name, price) {
+  if (isBusy) return;
+  document.getElementById('msg-input').value = `1 ${name}`;
+  document.getElementById('msg-input').focus();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter') handleSend();
+}
+
+function handleSend() {
+  if (isBusy) return;
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addUserBubble(text);
+  processOrder(text);
+}
+
+function scrollSuggestions(direction) {
+  const container = document.getElementById('suggestions-scroll');
+  if (!container) return;
+  const scrollAmount = container.clientWidth * 0.7;
+  container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.speed-pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.speed-pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
